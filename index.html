@@ -393,6 +393,16 @@
             <div class="form-section">
                 <h3 class="section-title">Design Specifications</h3>
 
+                <div class="select-group">
+                    <label>Jewelry Type</label>
+                    <select id="jewelryType">
+                        <option value="ring">Ring</option>
+                        <option value="necklace">Necklace</option>
+                        <option value="bracelet">Bracelet</option>
+                        <option value="earrings">Earrings</option>
+                    </select>
+                </div>
+
                 <div class="input-group">
                     <label>Your Name</label>
                     <input type="text" id="clientName" readonly>
@@ -614,7 +624,7 @@
             document.getElementById(id).addEventListener('change', calculatePrice);
         });
 
-        // Generate design
+        // Generate design with PRECISE image matching
         document.getElementById('generateBtn').addEventListener('click', async () => {
             const description = document.getElementById('description').value.trim();
             const words = description.split(/\s+/).filter(w => w.length > 0);
@@ -627,10 +637,13 @@
             }
             descError.style.display = 'none';
 
-            // Get form values
-            const metalColour = document.getElementById('metalColour').value.replace('Gold', '').replace('Finish', '').trim().toLowerCase();
-            const diamondCut = document.getElementById('diamondCut').options[document.getElementById('diamondCut').selectedIndex].text.toLowerCase();
+            // Get ALL form values for precise matching
+            const jewelryType = document.getElementById('jewelryType').value;
+            const diamondWeight = parseFloat(document.getElementById('diamondWeight').value) || 0;
+            const diamondCut = document.getElementById('diamondCut').value;
+            const metalWeight = parseFloat(document.getElementById('metalWeight').value) || 0;
             const metalCategory = document.getElementById('metalCategory').value;
+            const metalColour = document.getElementById('metalColour').value;
 
             // Show loading
             const previewImage = document.getElementById('previewImage');
@@ -640,102 +653,198 @@
             placeholderText.style.display = 'none';
             loadingSpinner.style.display = 'block';
 
-            // Map specifications to search terms for finding real jewelry images
-            const metalType = metalCategory === 'gold' ? metalColour + ' gold' : 'silver';
-            
-            // Construct search query for finding real jewelry images from Unsplash
-            // Unsplash has high-quality, free-to-use images
-            const searchQuery = `${metalType} ${diamondCut} diamond ring jewelry`;
-            
-            // Try multiple free image sources
-            const imageSources = [
-                // Unsplash - High quality jewelry photography
-                `https://source.unsplash.com/800x800/?${encodeURIComponent(searchQuery)},luxury,engagement,ring`,
-                // Unsplash alternative queries for better matches
-                `https://source.unsplash.com/800x800/?${encodeURIComponent(metalType)},diamond,ring,${encodeURIComponent(diamondCut)}`,
-                `https://source.unsplash.com/800x800/?jewelry,${encodeURIComponent(diamondCut)},ring,luxury`,
-                // Pollinations AI as final fallback
-                `https://image.pollinations.ai/prompt/${encodeURIComponent(`professional ${metalType} ${diamondCut} cut diamond engagement ring, ${description}, luxury jewelry photography, white background, studio lighting`)}`
+            // Map values to readable text
+            const cutNames = {
+                'round': 'Round Brilliant',
+                'princess': 'Princess Cut',
+                'emerald': 'Emerald Cut',
+                'oval': 'Oval Cut',
+                'cushion': 'Cushion Cut',
+                'pear': 'Pear Cut'
+            };
+
+            const metalNames = {
+                'yellow': 'Yellow Gold',
+                'white': 'White Gold',
+                'rose': 'Rose Gold',
+                'platinum': 'Platinum'
+            };
+
+            const cutName = cutNames[diamondCut] || diamondCut;
+            const metalName = metalCategory === 'silver' ? 'Silver' : metalNames[metalColour] || metalColour;
+
+            // Create HIGHLY SPECIFIC search queries based on ALL attributes
+            const specificQueries = [
+                // Query 1: Type + Cut + Metal (most specific)
+                `${metalName.toLowerCase()} ${cutName.toLowerCase()} diamond ${jewelryType}`,
+                // Query 2: Type + Metal + luxury
+                `luxury ${metalName.toLowerCase()} diamond ${jewelryType}`,
+                // Query 3: Type + Cut
+                `${cutName.toLowerCase()} diamond ${jewelryType} jewelry`,
+                // Query 4: Just type + metal
+                `${metalName.toLowerCase()} ${jewelryType} diamond`
+            ];
+
+            // Try Pollinations AI with VERY detailed prompts (better quality than Unsplash for custom specs)
+            const aiPrompts = specificQueries.map(query => {
+                const detailedPrompt = `professional jewelry photography, ${metalName} ${jewelryType}, ${cutName} ${diamondWeight} carat diamond, ${description}, luxury studio lighting, white background, 4K detail, premium quality, elegant presentation, high-end jewelry catalog style`;
+                return `https://image.pollinations.ai/prompt/${encodeURIComponent(detailedPrompt)}?width=800&height=800&nologo=true&enhance=true&seed=${Date.now() + Math.random()}`;
+            });
+
+            // Also try Pexels-style searches (curated stock photos)
+            const pexelsQueries = specificQueries.map(query => 
+                `https://images.pexels.com/photos/search/${encodeURIComponent(query)}?auto=compress&cs=tinysrgb&h=800&w=800`
+            );
+
+            // Combine all image sources
+            const allImageSources = [
+                ...aiPrompts,
+                // Add specific Unsplash searches
+                ...specificQueries.map(q => `https://source.unsplash.com/800x800/?${encodeURIComponent(q)},luxury,jewelry&sig=${Date.now()}`),
             ];
 
             let imageLoaded = false;
+            let attemptCount = 0;
 
-            // Try each image source
-            for (let i = 0; i < imageSources.length && !imageLoaded; i++) {
+            // Try loading images with better error handling
+            for (const imageUrl of allImageSources) {
+                if (imageLoaded) break;
+                attemptCount++;
+
                 try {
-                    const img = document.createElement('img');
-                    img.alt = `${diamondCut} ${metalType} ring`;
-                    img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain;';
-                    
                     await new Promise((resolve, reject) => {
-                        const timeout = setTimeout(() => {
-                            reject(new Error('Timeout'));
-                        }, 8000);
+                        const img = document.createElement('img');
+                        const timeout = setTimeout(() => reject(new Error('Timeout')), 10000);
 
                         img.onload = () => {
                             clearTimeout(timeout);
-                            loadingSpinner.style.display = 'none';
-                            previewImage.innerHTML = '';
                             
-                            // Add image container with details
-                            const container = document.createElement('div');
-                            container.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;';
-                            
-                            container.appendChild(img);
-                            
-                            // Add specification overlay
-                            const specs = document.createElement('div');
-                            specs.style.cssText = 'margin-top: 1rem; padding: 1rem; background: rgba(198, 167, 94, 0.1); border-radius: 5px; text-align: center; width: 90%;';
-                            specs.innerHTML = `
-                                <p style="margin: 0.3rem 0; font-size: 0.9rem; color: #666;">
-                                    <strong style="color: #C6A75E;">${diamondCut.charAt(0).toUpperCase() + diamondCut.slice(1)} Cut</strong> • 
-                                    <strong style="color: #C6A75E;">${metalType.charAt(0).toUpperCase() + metalType.slice(1)}</strong>
-                                </p>
-                                <p style="margin: 0.5rem 0; font-size: 0.85rem; color: #888; font-style: italic;">"${description.substring(0, 80)}${description.length > 80 ? '...' : ''}"</p>
-                            `;
-                            container.appendChild(specs);
-                            
-                            previewImage.appendChild(container);
-                            imageLoaded = true;
-                            resolve();
+                            // Check if image actually loaded (not a placeholder)
+                            if (img.naturalWidth > 100 && img.naturalHeight > 100) {
+                                loadingSpinner.style.display = 'none';
+                                previewImage.innerHTML = '';
+                                
+                                // Create detailed display container
+                                const container = document.createElement('div');
+                                container.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;';
+                                
+                                // Add image
+                                img.style.cssText = 'max-width: 100%; max-height: 350px; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);';
+                                img.alt = `${cutName} ${metalName} ${jewelryType}`;
+                                container.appendChild(img);
+                                
+                                // Add comprehensive specification card
+                                const specsCard = document.createElement('div');
+                                specsCard.style.cssText = 'background: white; padding: 1.5rem; border-radius: 8px; width: 90%; box-shadow: 0 2px 8px rgba(198, 167, 94, 0.15); border: 1px solid #C6A75E;';
+                                specsCard.innerHTML = `
+                                    <h4 style="margin: 0 0 1rem 0; color: #C6A75E; font-size: 1.1rem; text-align: center; letter-spacing: 0.05em;">BESPOKE SPECIFICATIONS</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem;">
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Type</p>
+                                            <p style="margin: 0.2rem 0 0 0; font-size: 0.95rem; color: #2C2C2C; font-weight: 600;">${jewelryType.charAt(0).toUpperCase() + jewelryType.slice(1)}</p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Diamond Cut</p>
+                                            <p style="margin: 0.2rem 0 0 0; font-size: 0.95rem; color: #2C2C2C; font-weight: 600;">${cutName}</p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Diamond Weight</p>
+                                            <p style="margin: 0.2rem 0 0 0; font-size: 0.95rem; color: #2C2C2C; font-weight: 600;">${diamondWeight} carats</p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Metal</p>
+                                            <p style="margin: 0.2rem 0 0 0; font-size: 0.95rem; color: #2C2C2C; font-weight: 600;">${metalName}</p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Metal Weight</p>
+                                            <p style="margin: 0.2rem 0 0 0; font-size: 0.95rem; color: #2C2C2C; font-weight: 600;">${metalWeight}g</p>
+                                        </div>
+                                        <div>
+                                            <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Category</p>
+                                            <p style="margin: 0.2rem 0 0 0; font-size: 0.95rem; color: #2C2C2C; font-weight: 600;">${metalCategory === 'gold' ? 'Gold' : 'Silver'}</p>
+                                        </div>
+                                    </div>
+                                    <div style="padding-top: 1rem; border-top: 1px solid #eee;">
+                                        <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em;">Design Notes</p>
+                                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #666; line-height: 1.5; font-style: italic;">"${description}"</p>
+                                    </div>
+                                `;
+                                container.appendChild(specsCard);
+                                
+                                previewImage.appendChild(container);
+                                imageLoaded = true;
+                                resolve();
+                            } else {
+                                reject(new Error('Invalid image'));
+                            }
                         };
                         
                         img.onerror = () => {
                             clearTimeout(timeout);
-                            reject(new Error('Image load failed'));
+                            reject(new Error('Load failed'));
                         };
                         
-                        // Add cache busting to get different images
-                        img.src = imageSources[i] + (imageSources[i].includes('?') ? '&' : '?') + 'v=' + Date.now();
+                        img.src = imageUrl;
                     });
-                    
-                    break;
                 } catch (error) {
-                    console.error(`Image source ${i + 1} failed:`, error);
+                    console.log(`Attempt ${attemptCount} failed, trying next source...`);
                 }
             }
 
-            // If all sources failed, show detailed fallback
+            // Enhanced fallback with ALL specifications
             if (!imageLoaded) {
                 loadingSpinner.style.display = 'none';
                 
                 const fallback = document.createElement('div');
-                fallback.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: linear-gradient(135deg, #C6A75E 0%, #F4E4C1 100%); border-radius: 10px;';
+                fallback.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem;';
                 fallback.innerHTML = `
-                    <div style="font-size: 4rem; margin-bottom: 1rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">💎</div>
-                    <h3 style="color: white; margin-bottom: 1.5rem; font-size: 1.4rem; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">Your Bespoke Design</h3>
-                    <div style="background: rgba(255,255,255,0.95); padding: 1.5rem; border-radius: 8px; width: 100%; max-width: 350px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                        <p style="margin: 0.8rem 0; color: #2C2C2C; font-size: 1rem;"><strong style="color: #C6A75E;">Cut:</strong> ${diamondCut.charAt(0).toUpperCase() + diamondCut.slice(1)}</p>
-                        <p style="margin: 0.8rem 0; color: #2C2C2C; font-size: 1rem;"><strong style="color: #C6A75E;">Metal:</strong> ${metalType.charAt(0).toUpperCase() + metalType.slice(1)}</p>
-                        <p style="margin: 0.8rem 0; color: #2C2C2C; font-size: 1rem;"><strong style="color: #C6A75E;">Weight:</strong> ${document.getElementById('diamondWeight').value} carats</p>
-                        <div style="margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
-                            <p style="color: #666; font-size: 0.9rem; font-style: italic; line-height: 1.5;">"${description}"</p>
+                    <div style="background: linear-gradient(135deg, #C6A75E 0%, #F4E4C1 100%); padding: 3rem 2rem; border-radius: 12px; width: 100%; box-shadow: 0 8px 24px rgba(198, 167, 94, 0.3);">
+                        <div style="font-size: 5rem; margin-bottom: 1rem; text-align: center; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));">
+                            ${jewelryType === 'ring' ? '💍' : jewelryType === 'necklace' ? '📿' : jewelryType === 'bracelet' ? '⌚' : '👂'}
+                        </div>
+                        <h3 style="color: white; margin-bottom: 2rem; font-size: 1.6rem; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.2); letter-spacing: 0.1em;">YOUR BESPOKE ${jewelryType.toUpperCase()}</h3>
+                        
+                        <div style="background: rgba(255,255,255,0.98); padding: 2rem; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.5rem;">
+                                <div style="text-align: center; padding: 1rem; background: #FAF7F2; border-radius: 6px;">
+                                    <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Type</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; color: #C6A75E; font-weight: bold;">${jewelryType.charAt(0).toUpperCase() + jewelryType.slice(1)}</p>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #FAF7F2; border-radius: 6px;">
+                                    <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Diamond Cut</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; color: #C6A75E; font-weight: bold;">${cutName}</p>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #FAF7F2; border-radius: 6px;">
+                                    <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Diamond</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; color: #C6A75E; font-weight: bold;">${diamondWeight} ct</p>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #FAF7F2; border-radius: 6px;">
+                                    <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Metal</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; color: #C6A75E; font-weight: bold;">${metalName}</p>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #FAF7F2; border-radius: 6px;">
+                                    <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Metal Weight</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; color: #C6A75E; font-weight: bold;">${metalWeight}g</p>
+                                </div>
+                                <div style="text-align: center; padding: 1rem; background: #FAF7F2; border-radius: 6px;">
+                                    <p style="margin: 0; font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Category</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; color: #C6A75E; font-weight: bold;">${metalCategory === 'gold' ? 'Gold' : 'Silver'}</p>
+                                </div>
+                            </div>
+                            
+                            <div style="padding: 1.5rem; background: linear-gradient(to right, #FAF7F2, white); border-radius: 6px; border-left: 3px solid #C6A75E;">
+                                <p style="margin: 0; font-size: 0.8rem; color: #999; text-transform: uppercase; letter-spacing: 0.1em;">Design Vision</p>
+                                <p style="margin: 0.8rem 0 0 0; font-size: 1rem; color: #2C2C2C; line-height: 1.6; font-style: italic;">"${description}"</p>
+                            </div>
+                            
+                            <div style="margin-top: 1.5rem; text-align: center; padding: 1rem; background: #C6A75E; border-radius: 6px;">
+                                <p style="margin: 0; color: white; font-size: 0.95rem; letter-spacing: 0.05em;">✨ Your specifications have been captured</p>
+                                <p style="margin: 0.5rem 0 0 0; color: rgba(255,255,255,0.9); font-size: 0.85rem;">Our master artisans will craft this unique piece</p>
+                            </div>
                         </div>
                     </div>
-                    <p style="margin-top: 1.5rem; color: rgba(255,255,255,0.9); font-size: 0.85rem; text-align: center;">Your specifications have been saved.<br/>Our artisans will craft this unique piece.</p>
                 `;
                 
-                previewImage.innerHTML = '';
                 previewImage.appendChild(fallback);
             }
         });
