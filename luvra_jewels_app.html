@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luvra Jewels - Bespoke Ring Atelier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: #FAF7F2;
+            color: #2C2C2C;
+            min-height: 100vh;
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            color: #C6A75E;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .tagline {
+            font-size: 0.9rem;
+            letter-spacing: 0.2em;
+            color: #666;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .login-box {
+            background: white;
+            padding: 3rem 2.5rem;
+            border-radius: 2px;
+            box-shadow: 0 10px 40px rgba(198, 167, 94, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #2C2C2C;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #C6A75E;
+            color: #2C2C2C;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .google-btn:hover {
+            background: #C6A75E;
+            color: white;
+        }
+
+        .phone-section {
+            display: none;
+            margin-top: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+            letter-spacing: 0.05em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            background: #FAF7F2;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #C6A75E;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: #C6A75E;
+            color: white;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.1em;
+        }
+
+        .btn:hover {
+            background: #B39650;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-msg {
+            color: #d32f2f;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .success-animation {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: block;
+            stroke-width: 2;
+            stroke: #C6A75E;
+            stroke-miterlimit: 10;
+            margin: 0 auto 1rem;
+            box-shadow: inset 0px 0px 0px #C6A75E;
+            animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+        }
+
+        .checkmark-circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #C6A75E;
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+
+        .checkmark-check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+
+        @keyframes stroke {
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes fill {
+            100% { box-shadow: inset 0px 0px 0px 30px #C6A75E; }
+        }
+
+        /* Customization Page Styles */
+        .customization-container {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #C6A75E;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #666;
+            letter-spacing: 0.1em;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .form-section, .preview-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 2px;
+            box-shadow: 0 5px 20px rgba(198, 167, 94, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: #2C2C2C;
+            border-bottom: 1px solid #C6A75E;
+            padding-bottom: 0.5rem;
+        }
+
+        .select-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            background: #FAF7F2;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .textarea-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .textarea-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            background: #FAF7F2;
+            font-size: 1rem;
+            min-height: 100px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.3rem;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 400px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preview-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .loading-spinner {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #C6A75E;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .price-breakdown {
+            background: #FAF7F2;
+            padding: 1.5rem;
+            border-radius: 2px;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .price-row.total {
+            border-top: 2px solid #C6A75E;
+            padding-top: 0.8rem;
+            margin-top: 0.8rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #C6A75E;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: #C6A75E;
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 0.1em;
+            margin-top: 1rem;
+        }
+
+        .generate-btn:hover {
+            background: #B39650;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="logo">LUVRA JEWELS</div>
+        <div class="tagline">BESPOKE RING ATELIER</div>
+        
+        <div class="login-box">
+            <h2 class="login-title">Welcome</h2>
+            
+            <button class="google-btn" id="googleSignIn">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+            </button>
+
+            <div class="phone-section" id="phoneSection">
+                <div class="input-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phoneNumber" placeholder="+91 1234567890">
+                    <div class="error-msg" id="phoneError">Please enter a valid phone number</div>
+                </div>
+                
+                <button class="btn" id="sendOtp">Send OTP</button>
+
+                <div class="input-group" id="otpGroup" style="display:none; margin-top:1.5rem;">
+                    <label>Enter OTP</label>
+                    <input type="text" id="otpCode" placeholder="6-digit code" maxlength="6">
+                    <div class="error-msg" id="otpError">Invalid OTP</div>
+                </div>
+
+                <button class="btn" id="verifyOtp" style="display:none; margin-top:1rem;">Verify OTP</button>
+            </div>
+
+            <div class="success-animation" id="successAnimation">
+                <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                    <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+                <p style="color:#C6A75E; font-size:1.2rem;">Verification Successful</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customization Page -->
+    <div class="customization-container" id="customizationPage">
+        <div class="header">
+            <h1>LUVRA JEWELS</h1>
+            <p>CRAFT YOUR SIGNATURE PIECE</p>
+        </div>
+
+        <div class="content-grid">
+            <!-- Form Section -->
+            <div class="form-section">
+                <h3 class="section-title">Design Specifications</h3>
+
+                <div class="input-group">
+                    <label>Your Name</label>
+                    <input type="text" id="clientName" readonly>
+                </div>
+
+                <div class="input-group">
+                    <label>Diamond Weight (carats)</label>
+                    <input type="number" id="diamondWeight" placeholder="1.5" step="0.01" min="0.1">
+                </div>
+
+                <div class="select-group">
+                    <label>Diamond Cut</label>
+                    <select id="diamondCut">
+                        <option value="round">Round Brilliant</option>
+                        <option value="princess">Princess</option>
+                        <option value="emerald">Emerald</option>
+                        <option value="oval">Oval</option>
+                        <option value="cushion">Cushion</option>
+                        <option value="pear">Pear</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Metal Weight (grams)</label>
+                    <input type="number" id="metalWeight" placeholder="5" step="0.1" min="1">
+                </div>
+
+                <div class="select-group">
+                    <label>Metal Category</label>
+                    <select id="metalCategory">
+                        <option value="gold">Gold (₹17,000/g)</option>
+                        <option value="silver">Silver (₹280/g)</option>
+                    </select>
+                </div>
+
+                <div class="select-group">
+                    <label>Metal Colour</label>
+                    <select id="metalColour">
+                        <option value="yellow">Yellow Gold</option>
+                        <option value="white">White Gold</option>
+                        <option value="rose">Rose Gold</option>
+                        <option value="platinum">Platinum Finish</option>
+                    </select>
+                </div>
+
+                <div class="textarea-group">
+                    <label>Design Description (5-70 words)</label>
+                    <textarea id="description" placeholder="Describe your vision..."></textarea>
+                    <div class="char-counter">
+                        <span id="wordCount">0</span> / 70 words
+                    </div>
+                    <div class="error-msg" id="descError">Description must be between 5 and 70 words</div>
+                </div>
+
+                <button class="generate-btn" id="generateBtn">Generate Design</button>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <h3 class="section-title">Your Design</h3>
+
+                <div class="preview-image" id="previewImage">
+                    <div class="loading-spinner" id="loadingSpinner"></div>
+                    <p id="placeholderText" style="color:#999;">Your ring will appear here</p>
+                </div>
+
+                <div class="price-breakdown">
+                    <h4 style="margin-bottom:1rem; color:#C6A75E;">Price Breakdown</h4>
+                    
+                    <div class="price-row">
+                        <span>Diamond Cost:</span>
+                        <span id="diamondCost">₹0</span>
+                    </div>
+                    
+                    <div class="price-row">
+                        <span>Metal Cost:</span>
+                        <span id="metalCost">₹0</span>
+                    </div>
+                    
+                    <div class="price-row">
+                        <span>Crafting Fee (8%):</span>
+                        <span id="craftingFee">₹0</span>
+                    </div>
+                    
+                    <div class="price-row total">
+                        <span>Total Price:</span>
+                        <span id="totalPrice">₹0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <script>
+        // ===== FIREBASE CONFIGURATION =====
+        // ✅ FIREBASE CONFIG ADDED
+        const firebaseConfig = {
+            apiKey: "AIzaSyBhVhwKUSAUuSgPeokAs_Wz4PR4quOtuus",
+            authDomain: "luvra-by-jpjewels.firebaseapp.com",
+            projectId: "luvra-by-jpjewels",
+            storageBucket: "luvra-by-jpjewels.firebasestorage.app",
+            messagingSenderId: "613062978896",
+            appId: "1:613062978896:web:86c166c0a4b0133846d055",
+            measurementId: "G-QYYXL87ZN1"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // ===== GOOGLE APPS SCRIPT WEB APP URL =====
+        // ✅ GOOGLE SHEETS URL ADDED
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbyDXL4nXz64z6mlHsKkeOMn5uNg2GODVacOtCrV-sy6A82bTy9JE4ENz3lr0jqL7srE/exec";
+
+        // ===== GLOBAL VARIABLES =====
+        let currentUser = null;
+        let confirmationResult = null;
+
+        // ===== LOGIN FUNCTIONALITY =====
+        document.getElementById('googleSignIn').addEventListener('click', async () => {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                currentUser = result.user;
+                
+                // Show phone verification section
+                document.getElementById('phoneSection').style.display = 'block';
+                document.getElementById('googleSignIn').style.display = 'none';
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                alert('Sign-in failed. Please try again.');
+            }
+        });
+
+        // ===== PHONE OTP FUNCTIONALITY =====
+        document.getElementById('sendOtp').addEventListener('click', async () => {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const phoneError = document.getElementById('phoneError');
+
+            // Validate phone number
+            if (!phoneNumber.match(/^\+?[1-9]\d{1,14}$/)) {
+                phoneError.style.display = 'block';
+                return;
+            }
+            phoneError.style.display = 'none';
+
+            try {
+                // Setup reCAPTCHA
+                if (!window.recaptchaVerifier) {
+                    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('sendOtp', {
+                        'size': 'invisible'
+                    });
+                }
+
+                // Send OTP
+                confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier);
+                
+                // Show OTP input
+                document.getElementById('otpGroup').style.display = 'block';
+                document.getElementById('verifyOtp').style.display = 'block';
+                document.getElementById('sendOtp').textContent = 'Resend OTP';
+                
+                alert('OTP sent to your phone!');
+            } catch (error) {
+                console.error('OTP send error:', error);
+                alert('Failed to send OTP. Please try again.');
+            }
+        });
+
+        document.getElementById('verifyOtp').addEventListener('click', async () => {
+            const otpCode = document.getElementById('otpCode').value.trim();
+            const otpError = document.getElementById('otpError');
+
+            if (otpCode.length !== 6) {
+                otpError.style.display = 'block';
+                return;
+            }
+            otpError.style.display = 'none';
+
+            try {
+                // Verify OTP
+                await confirmationResult.confirm(otpCode);
+
+                // Show success animation
+                document.querySelector('.login-box').style.display = 'none';
+                document.getElementById('successAnimation').style.display = 'block';
+
+                // Prepare data for Google Sheets
+                const userData = {
+                    name: currentUser.displayName || 'Guest',
+                    email: currentUser.email,
+                    phone: document.getElementById('phoneNumber').value,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Send to Google Sheets
+                await fetch(SHEET_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                // Redirect to customization page
+                setTimeout(() => {
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('customizationPage').style.display = 'block';
+                    document.getElementById('clientName').value = userData.name;
+                }, 2000);
+
+            } catch (error) {
+                console.error('OTP verification error:', error);
+                otpError.style.display = 'block';
+            }
+        });
+
+        // ===== CUSTOMIZATION PAGE FUNCTIONALITY =====
+        
+        // Word counter
+        document.getElementById('description').addEventListener('input', function() {
+            const words = this.value.trim().split(/\s+/).filter(w => w.length > 0);
+            document.getElementById('wordCount').textContent = words.length;
+        });
+
+        // Price calculation
+        function calculatePrice() {
+            const diamondWeight = parseFloat(document.getElementById('diamondWeight').value) || 0;
+            const metalWeight = parseFloat(document.getElementById('metalWeight').value) || 0;
+            const metalCategory = document.getElementById('metalCategory').value;
+
+            const DIAMOND_RATE = 10000; // ₹10,000 per carat
+            const METAL_RATES = {
+                gold: 17000,
+                silver: 280
+            };
+
+            const diamondCost = diamondWeight * DIAMOND_RATE;
+            const metalCost = metalWeight * METAL_RATES[metalCategory];
+            const subtotal = diamondCost + metalCost;
+            const craftingFee = subtotal * 0.08;
+            const total = subtotal + craftingFee;
+
+            document.getElementById('diamondCost').textContent = '₹' + diamondCost.toLocaleString('en-IN');
+            document.getElementById('metalCost').textContent = '₹' + metalCost.toLocaleString('en-IN');
+            document.getElementById('craftingFee').textContent = '₹' + craftingFee.toLocaleString('en-IN');
+            document.getElementById('totalPrice').textContent = '₹' + total.toLocaleString('en-IN');
+        }
+
+        // Update price on input change
+        ['diamondWeight', 'metalWeight', 'metalCategory'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calculatePrice);
+            document.getElementById(id).addEventListener('change', calculatePrice);
+        });
+
+        // Generate design
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const description = document.getElementById('description').value.trim();
+            const words = description.split(/\s+/).filter(w => w.length > 0);
+            const descError = document.getElementById('descError');
+
+            // Validate description
+            if (words.length < 5 || words.length > 70) {
+                descError.style.display = 'block';
+                return;
+            }
+            descError.style.display = 'none';
+
+            // Get form values
+            const metalColour = document.getElementById('metalColour').value.replace('Gold', '').replace('Finish', '').trim();
+            const diamondCut = document.getElementById('diamondCut').value;
+
+            // Construct AI prompt
+            const prompt = `${metalColour} ${diamondCut} cut diamond engagement ring, ${description}, luxury jewelry photography, white background, 4k ultra detail, professional studio lighting`;
+
+            // Show loading
+            const previewImage = document.getElementById('previewImage');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const placeholderText = document.getElementById('placeholderText');
+            
+            placeholderText.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+
+            // Generate image using Pollinations AI
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=800&nologo=true`;
+
+            // Create image element
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Generated Ring Design';
+            
+            img.onload = () => {
+                loadingSpinner.style.display = 'none';
+                previewImage.innerHTML = '';
+                previewImage.appendChild(img);
+            };
+
+            img.onerror = () => {
+                loadingSpinner.style.display = 'none';
+                placeholderText.textContent = 'Failed to generate image. Please try again.';
+                placeholderText.style.display = 'block';
+            };
+        });
+    </script>
+</body>
+</html>
